@@ -11,4 +11,9 @@ In the GUI simply select system and location you are departing from in the left 
 The tool will display the profit for all possible trades and highlights the most profitable one.
 
 ## Installation
+After cloning this repo install missing Python modules:
 
+```
+pip install pandas
+pip install pyqt5
+```
