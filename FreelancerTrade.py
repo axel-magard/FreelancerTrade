@@ -19,9 +19,6 @@ class UI(QMainWindow):
         self.systemFrom = "Bering"
         self.systemTo = "Bering"
 
-        # Load data
-        self.df = pd.read_excel(file)
-
         # Load the ui file
         uic.loadUi("FreelancerTrade.ui", self)
 
@@ -35,15 +32,15 @@ class UI(QMainWindow):
         self.comboBox1b.currentTextChanged.connect(self.onLocationFromSelected)
         self.comboBox2b.currentTextChanged.connect(self.onLocationToSelected)
         self.toolButton1.clicked.connect(self.onExchange)
+        self.actionFreelancer.triggered.connect(self.onActionFreelancer)
+        self.actionFreelancer_Discovery.triggered.connect(self.onActionFreelancerDiscovery)
 
         # Setup tables
         self.setupTable(self.table1)
         self.setupTable(self.table2,["Profit"])
 
-        # Populate combo boxes
-        systems = list(self.df.groupby(['System']).count().index)
-        self.comboBox1a.addItems(systems)
-        self.comboBox2a.addItems(systems)
+        # Load data
+        self.loadData()
 
     def onExchange(self):
         locationFrom = self.comboBox1b.currentText()
@@ -115,9 +112,41 @@ class UI(QMainWindow):
 
     def onLocationFromSelected(self):
         self.dfFrom = self.loadTable(self.table1,self.systemFrom,self.comboBox1b.currentText(),'verkauft')
+        self.onLocationToSelected()
 
     def onLocationToSelected(self):
         self.loadTable(self.table2,self.systemTo,self.comboBox2b.currentText(),'kauft',computeProfit=True)
+
+    def onActionFreelancer(self, s):
+        global file
+        file = "Freelancer Traderoutes.xlsx"
+        self.actionFreelancer.setEnabled(False)
+        self.actionFreelancer_Discovery.setEnabled(True)
+        self.loadData()
+
+    def onActionFreelancerDiscovery(self, s):
+        global file
+        file = "Freelancer Discovery Traderoutes.xlsx"
+        self.actionFreelancer.setEnabled(True)
+        self.actionFreelancer_Discovery.setEnabled(False)
+        self.loadData()
+
+    def loadData(self):
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+        # Load data
+        self.df = pd.read_excel(file)
+        try:
+            self.df = self.df.drop(["Owner", "Region"], axis=1)
+        except KeyError: pass
+        # Populate combo boxes
+        systems = list(self.df.groupby(['System']).count().index)
+        self.comboBox1a.clear()
+        self.comboBox2a.clear()
+        self.comboBox1a.addItems(systems)
+        self.comboBox2a.addItems(systems)
+        QApplication.restoreOverrideCursor()
+
+
 
 
 app = QApplication(sys.argv)
